@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>my-news</title>
+  <link href="https://cdn.bootcss.com/minireset.css/0.0.2/minireset.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/index.css">
+<link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <div class="mainbody">
+    <header>
+      <img src="./img/user.png" alt="user" class="user">
+      <img src="./img//logo-site.png" alt="logo" class="logo">
+      <div class="email">
+        <img src="./img//email.png" alt="email" class="img-email">
+        <span class="span-email">邮箱</span>
+      </div>
+    </header>
+    <div class="content">
+      <ul class="detail">
+        <!-- 新闻列表 -->
+      </ul>
+      <div class="loading"></div>
+    </div>
+    <div class="foot-tab">
+      <ul>
+        <li class="active">
+          <a data-url="http://3g.163.com/touch/article/list/BBM54PGAwangning/0-10.html">要闻</a>
+        </li>
+        <li>
+          <a data-url="https://3g.163.com/touch/reconstruct/article/list/BAI5E21Owangning/2-10.html">推荐</a>
+        </li>
+        <li>
+          <a data-url="https://3g.163.com/touch/reconstruct/article/list/BAI5E21Owangning/0-10.html">原创</a>
+        </li>
+      </ul>
+    </div>
+    <div class="login">
+      <div class="login-model"></div>
+      <div class="login-left">
+        <div class="login-panel">
+          <input type="text" name="" id="" class="user-int" placeholder="邮箱">
+          <input type="password" name="" id="" class="user-int" placeholder="密码">
+          <button class="logon-btn">登录</button>
+        </div>
+        <div class="prompt">
+          <a href="##" class="register">立即注册</a>
+          <a href="##" class="forget">忘记密码</a>
+        </div>
+        <div class="other-user">
+          <h2>社交账号登录</h2>
+          <p class="login-select">
+            <a href="##" class="qq"></a>
+            <a href="##" class="weibo"></a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script>
+// 新闻列表
+function pushTo(url){
+  $.ajax({
+   url:url,
+   dataType:"jsonp",
+   jsonp:'jsonpCallback',
+   jsonpCallback:"artiList",
+   success:function(data){
+   $('.loading').hide();
+   var html='';
+   $.each(data,function(index, el) {
+    $.each(el,function(index, el) {
+      html += `
+        <li data-href="${el.docid}">
+          <a class="content-a" href="https://3g.163.com/news/article/${el.docid}.html"">
+            <div class="left">
+              <h3 class="title">${el.title}</h3>
+              <p class="small-title">
+                <span class="source">${el.source}</span>
+                <span class="date">${el.ptime}</span>
+                <span class="answer">${el.priority} 跟帖</span>
+              </p>
+            </div>
+            <img src="${el.imgsrc}" alt="img-right" class="img-right">
+          </a>
+        </li>
+      `;
+    });
+  });
+  $('.detail').html(html);
+   }
+  });
+}
+ $(function(){  
+  // 新闻列表
+  $('.loading').hide();
+  // 初始化新闻列表
+  var Furl = $('.active a').attr('data-url');
+  pushTo(Furl);
+  $('.foot-tab li a').on("tap",function(event) {
+    var li = $(this).parent('li'),
+    url = $(this).attr('data-url');
+    var li = $(this).parent('li'),
+    url = $(this).attr('data-url'),
+    cls = li.attr('class');
+    li.addClass('active').siblings('li').removeClass('active');
+    $('body').scrollTop(0)
+    // 判断当前是否是active,不是就请求
+    if(cls !== 'active'){
+      $('.loading').show();
+      pushTo(url);
+    }
+  });
+  // 点击user时login面板展开
+  // 点击空白，login面板收起
+  $('.user').on('tap',function(e){
+    $('.login').addClass('shows');
+    $('body,html').addClass('over');
+    $('.login-model').fadeIn(300);
+  });
+  $('.login-model').on('tap',function(e){
+    $('.login').removeClass('shows');
+    $('body,html').removeClass('over');
+    $('.login-model').fadeOut(300);
+  });
+  // 右滑，判断active在第几个li
+  // 若为第一个tab，呼出登录框
+  // 否则切换tab
+  $('.content').on('swiperight',function(e){
+    var num = $('.foot-tab li.active').index();
+    if(num == 0){
+      $('.user').tap();
+    }else{
+      $('.foot-tab li:eq('+(num-1)+') a').tap();
+    }    
+  });
+  // 左滑，判断active在第几个li
+  // 若为最后一个，则不做处理
+  $('.content').on('swipeleft',function(e){
+    var num = $('.foot-tab li.active').index(),
+        len = $('.foot-tab li').length;
+    if(num < len){      
+      $('.foot-tab li:eq('+(num+1)+') a').tap();
+    }  
+  });
+  // 上拉加载
+  $(document).on('scroll',function(){
+    var scrollTop = $(this).scrollTop();
+　　var scrollHeight = $(document).height()-600;
+　　var windowHeight = $('body').height();
+　　if(scrollTop + windowHeight >= scrollHeight){
+    　　//当滚动到底部时,执行此代码框中的代码
+      // console.log('执行加载');
+      // location.reload();
+      // pushTo('http://3g.163.com/touch/article/list/BBM54PGAwangning/11-20.html');
+      /* $.ajax({
+        url:"http://3g.163.com/touch/article/list/BBM54PGAwangning/11-20.html",
+        dataType:"jsonp",
+        jsonp:'jsonpCallback',
+        jsonpCallback:"artiList",
+        success:function(data){
+        $('.loading').hide();
+        var html=$('.detail').html();
+        $.each(data,function(index, el) {
+          $.each(el,function(index, el) {
+            html += `
+              <li data-href="${el.docid}">
+                <a class="content-a" href="https://3g.163.com/news/article/${el.docid}.html"">
+                  <div class="left">
+                    <h3 class="title">${el.title}</h3>
+                    <p class="small-title">
+                      <span class="source">${el.source}</span>
+                      <span class="date">${el.ptime}</span>
+                      <span class="answer">${el.priority} 跟帖</span>
+                    </p>
+                  </div>
+                  <img src="${el.imgsrc}" alt="img-right" class="img-right">
+                </a>
+              </li>
+            `;
+          });
+        });
+        $('.detail').html(html);
+        }
+        }); */
+　　}
+  })
+ })
+</script>
+</body>
+</html>
